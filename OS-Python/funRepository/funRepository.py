@@ -5,7 +5,7 @@
 @version: 2014-02-14
 '''
 
-import os, hashlib, operator
+import os, errno, hashlib, operator, filecmp
 
 '''
 @summary: Get the MD5 hash without loading the whole file to memory.
@@ -23,6 +23,19 @@ def GetMd5Hash(filePath, chunkSize = 2 ** 20):
             digest.update(chunk)
             chunk = file.read(chunkSize)
     return digest.hexdigest()
+
+'''
+@summary: Check if two files have same content.
+@param f1: file number 1
+@param f2: file number 2
+@return: TRUE, if they have same content
+         FALSE, else
+'''
+def SameContent(f1, f2):
+    if GetMd5Hash(f1) == GetMd5Hash(f2):
+        if filecmp.cmp(f1, f2, shallow = False):
+            return True
+    return False
 
 '''
 @summary: Walk through the directory tree and populate a dictionary 
@@ -205,6 +218,18 @@ def CreateDirectoriesSymLinks(topDir, sameSuffix):
             if not os.path.lexists(destination):
                 os.symlink(source, destination)
 
-
+'''
+@summary: Create a soft link in a forced way.
+          If already exists, remove it and create a new one.
+@param source:      source file
+@param destination: destination file
+'''
+def CreateSoftLink(source, destination):
+    try:
+        os.symlink(source, destination)
+    except OSError as e:
+        if e.errno == errno.EEXIST:
+            os.remove(destination)
+            os.symlink(source, destination)
 
         
