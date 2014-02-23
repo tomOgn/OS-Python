@@ -9,7 +9,7 @@ URL: http://www.cs.unibo.it/~renzo/so/pratiche/2005.07.25.pdf
 @author: Tommaso Ognibene
 '''
 
-import os, sys,re
+import os, sys, re
 
 def IsNatural(number):
     return number % 1 == 0 and number >= 0
@@ -19,24 +19,21 @@ def Average(numbers):
 
 def Main(argv, argc):
     # Pre-conditions:
-    # [1] check number of arguments
+    # [1] Check number of parameters
     if argc < 3:
-        print("The function requires at least two parameters to be passed in.")
-        return
+        sys.exit("The function requires at least two parameters to be passed in.")
     
-    # [2] check parameters
+    # [2] Check the parameter
     if not os.path.isfile(argv[1]):
-        print("The first parameter should be an existing file.")
-        return  
+        sys.exit("The first parameter should be an existing file.")  
     
     numColumns = argc - 2
     columns = argv[2 : ]
     for i in range(numColumns):
         if not columns[i].isdigit():
-            print("The parameters after the file should be natural numbers.")
-            return  
+            sys.exit("The parameters after the file should be natural numbers.")  
     
-    # numbers of each chosen column
+    # Numbers of each chosen column
     values = [[] for i in range(numColumns)]
     
     with open(argv[1]) as file:   

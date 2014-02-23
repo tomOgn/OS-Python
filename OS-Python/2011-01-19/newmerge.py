@@ -8,8 +8,7 @@ URL: http://www.cs.unibo.it/~renzo/so/pratiche/2011.01.19.pdf
 @author: Tommaso Ognibene
 '''
 
-import os
-import sys
+import os, sys
 
 '''
 @summary: Walk through a directory tree.
@@ -42,31 +41,31 @@ def MergeDirectories(sources, n, destination):
 
 # Entry point
 def Main(argv):
-    # Check the number of arguments
+    
+    # Check number of parameters
     numArgs = len(argv)
-        
     if numArgs != 4:
-        print("The function needs three arguments to be passed in")
-    else:
-        # Check input directories
-        mergingDir = []
-        for index in range(1, 3):
-            if not os.path.isabs(str(argv[index])):
-                mergingDir.append(os.path.abspath(str(argv[index])))
-            else:
-                mergingDir.append(str(argv[index]))
-        mergedDir = str(argv[3])
-        
-        if not (os.path.isdir(mergingDir[0])):
-            print("Firts argument should be an existing directory")
-        elif not (os.path.isdir(mergingDir[1])):
-            print("Second argument should be an existing directory")
-        elif not (os.path.isdir(mergedDir)):
-            print("Third argument should be an existing directory")        
+        sys.exit("The function needs three parameters to be passed in")
+
+    # Check parameters
+    mergingDir = []
+    for index in range(1, 3):
+        if not os.path.isabs(str(argv[index])):
+            mergingDir.append(os.path.abspath(str(argv[index])))
         else:
-            MergeDirectories(mergingDir, 2, mergedDir)
-                    
-            print("Done!")
+            mergingDir.append(str(argv[index]))
+    mergedDir = str(argv[3])
+    
+    if not (os.path.isdir(mergingDir[0])):
+        sys.exit("Firts parameter should be an existing directory")
+    if not (os.path.isdir(mergingDir[1])):
+        sys.exit("Second parameter should be an existing directory")
+    if not (os.path.isdir(mergedDir)):
+        sys.exit("Third parameter should be an existing directory")        
+   
+    MergeDirectories(mergingDir, 2, mergedDir)
+            
+    print("Done!")
 
 if __name__ == "__main__":
     sys.exit(Main(sys.argv))

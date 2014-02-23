@@ -11,8 +11,13 @@ URL: http://www.cs.unibo.it/~renzo/so/pratiche/2009.02.12.pdf
 import os, sys, datetime, time
 
 def Main(argv):
-    # Verify preconditions
-    Preconditions(argv)
+    # Check number of paramenters
+    if len(argv) != 2:
+        sys.exit("The function requires one paramenter to be passed in.")
+    
+    # Check the parameter
+    if not (os.path.isdir(argv[1])):
+       sys.exit("The paramenter should be an existing directory.")
     
     # Build a dictionary with key-value pair { file extension - files }
     extensionFile = {}
@@ -20,35 +25,19 @@ def Main(argv):
     # Populate the dictionary
     PopulateDictionary(argv[1], extensionFile)
     
-    # Order the dictionary
-    
-    # Print the dictionary
+    # Print sorted results
+    for key, values in sorted(extensionFile.items()):
+        values.sort(key=str.lower)
+        print("{0}:\n\t{1}".format(key, "\n\t".join(value for value in values)))
     
     print("Done!")
-
-def Preconditions(argv):
-    # Check number of arguments
-    if len(argv) != 2:
-        print("The function requires one argument to be passed in.")
-        return
-    
-    # Check parameter
-    if not (os.path.isdir(argv[1])):
-        print("Paramenter should be an existing directory.")
-        return;
 
 # Populate a dictionary
 def PopulateDictionary(inputDir, extensionFile):
     for fileName in os.listdir(inputDir):
-        filePath = os.path.join(inputDir, fileName)
-        fileName, fileExtension = os.path.splitext(fileName)
+        _, fileExtension = os.path.splitext(fileName)
         # Update the dictionary
         extensionFile[fileExtension] = extensionFile.get(fileExtension, []) + [fileName]
-        
-def OrderDictionary():
-            for key, value in files.items():
-            print('Level {0}: {1}.'.format(key, sorted(value)) ) 
-
     
 if __name__ == "__main__":
     sys.exit(Main(sys.argv))

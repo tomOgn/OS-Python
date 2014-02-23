@@ -11,16 +11,13 @@ URL: http://www.cs.unibo.it/~renzo/so/pratiche/2005.09.20.pdf
 import os, sys
 
 def Main(argv):
-    # Pre-conditions:
-    # (*) check number of arguments
+    # Check number of parameters
     if len(argv) != 2:
-        print("The function requires one argument to be passed in.")
-        return
+        sys.exit("The function requires one parameter to be passed in.")
     
-    # (*) check parameters
+    # Check the parameter
     if not os.path.isdir(argv[1]):
-        print("The argument should be an existing directory.")
-        return  
+        sys.exit("The argument should be an existing directory.")
     
     # Build, sort and print a list of relative pathnames
     paths = []

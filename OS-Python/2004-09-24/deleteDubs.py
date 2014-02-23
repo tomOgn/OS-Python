@@ -60,14 +60,12 @@ def Main(argv, argc):
     # Pre-conditions:
     # [1] check number of arguments
     if argc != 3:
-        print("The function requires two parameters to be passed in.")
-        return
+        sys.exit("The function requires two parameters to be passed in.")
     
     # [2] check parameters
     for i in range(2):
         if not os.path.isdir(argv[i + 1]):
-            print("The parameters should be two existing directories.")
-            return
+            sys.exit("The parameters should be two existing directories.")
     
     # Build a dictionary with key-value pair {file size - [file name]}
     sameSize = { }

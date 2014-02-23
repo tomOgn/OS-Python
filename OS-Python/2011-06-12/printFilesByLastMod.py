@@ -37,14 +37,12 @@ def Main(argv):
     # Check number of arguments
     numArgs = len(argv)
     if numArgs != 2:
-        print("The function needs one argument to be passed in.")
-        return
+        sys.exit("The function needs one argument to be passed in.")
     
     # Check parameters
     topDir = str(argv[1])
     if not os.path.isdir(topDir):
-        print("The argument should be an existing directory.")
-        return
+        sys.exit("The argument should be an existing directory.")
     
     # Build a list of file elements 
     files = []

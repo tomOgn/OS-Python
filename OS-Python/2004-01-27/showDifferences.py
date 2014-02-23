@@ -13,17 +13,13 @@ import os, sys, hashlib, difflib
 def main(argv):
     # Check number of parameters
     if len(argv) != 3:
-        print("The function needs two parameters to be passed in.")
-        return;
+        sys.exit("The function needs two parameters to be passed in.")
     
-    # Check input directories
+    # Check parameters
     if not (os.path.isdir(argv[1])):
-        print("First argument should be an existing directory.")
-        return;
-    
+        sys.exit("The first parameter should be an existing directory.")
     if not (os.path.isdir(argv[2])):
-        print("Second argument should be an existing directory.")
-        return;
+        sys.exit("The second parameter should be an existing directory.")
     
     # Build a dictionary with key-value pair { relative file path - MD5 hash }
     fileHash = {}
@@ -34,8 +30,8 @@ def main(argv):
     print("Done!")
 
 '''
-@summary: Populate a dictionary with key-value pair { relative path - MD5 hash }
-          It may be used to Compare two directories having the same files in order 
+@summary: Populate a dictionary with key-value pair { relative path - MD5 hash }.
+          It may be used to compare two directories having the same files in order 
           to show the differences (e.g. which one is more updated).
 @param fileHash: dictionary with key-value pair { relative path - MD5 hash }
 @param topDir: input directory

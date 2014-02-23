@@ -13,22 +13,22 @@ import os, sys, subprocess
 def main(argv):
     # Check number of parameters
     if len(argv) != 3:
-        print("The function requires two parameters to be passed in.")
-        return
+        sys.exit("The function requires two parameters to be passed in.")
     
     # Check the two parameters
     inputFile = str(argv[1])
     topDir = str(argv[2])
     if not os.path.isfile(inputFile):
-        print("First parameter should be an existing file.")
-    elif not os.path.isdir(topDir):
-        print("Second parameter should be an existing directory.")
-    else:
-        fileType = getFileType(inputFile)
-        sameTypeFiles = PopulateSameType(topDir, fileType)
+        sys.exit("First parameter should be an existing file.")
         
-        # Print results
-        print("\n".join(file for file in sameTypeFiles))
+    if not os.path.isdir(topDir):
+        sys.exit("Second parameter should be an existing directory.")
+        
+    fileType = getFileType(inputFile)
+    sameTypeFiles = PopulateSameType(topDir, fileType)
+    
+    # Print results
+    print("\n".join(file for file in sameTypeFiles))
 
 '''
 @summary:  Walk through the directory tree and populate a list

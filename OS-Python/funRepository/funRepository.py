@@ -5,7 +5,7 @@
 @version: 2014-02-14
 '''
 
-import os, errno, hashlib, operator, filecmp
+import os, errno, hashlib, operator, filecmp, datetime, time, re, tarfile, gzip
 
 '''
 @summary: Get the MD5 hash without loading the whole file to memory.
@@ -60,7 +60,35 @@ def PopulateSameContent(filePaths, sameContent):
     for filePath in filePaths:
         md5 = GetMd5Hash(filePath)
         sameContent[md5] = sameContent.get(md5, []) + [filePath]
-        
+
+'''
+@summary: Delete files having same content
+@param sameContent: dictionary with key-value pair {MD5 digest - [file path]}
+'''
+def DeleteFiles(sameContent):
+    for filePaths in sorted(sameContent.values(), key = len, reverse = True):
+        if len(filePaths) < 2: break 
+        for filePath in filePaths:
+            os.remove(filePath)
+
+'''
+@summary:  Walk through the directory tree and populate a dictionary 
+           with key-value pair {relative file path - MD5 hash}.
+           Find files with same name but different content.
+@param topDir:   the root directory
+@param fileHash: the dictionary
+'''
+def CompareDirectories(fileHash, topDir):
+    for dirPath, _, fileNames in os.walk(topDir):
+        for fileName in fileNames:
+            filePath = os.path.join(dirPath, fileName)
+            md5 = GetMd5Hash(filePath)
+            relativePath = os.path.join(os.path.relpath(dirPath, topDir), fileName)
+            if not fileHash.get(relativePath, ""):
+                fileHash[relativePath] = md5
+            elif fileHash[relativePath] != md5:
+                print("[{0}]".format(relativePath))
+
 '''
 @summary:  Walk through the directory tree and populate a dictionary 
            with key-value pair {file extension - total size}.
@@ -156,6 +184,25 @@ def PopulateFileDirectories(topDir, fileDirs):
             fileDirs[fileName] = fileDirs.get(fileName, '') + parent + ' '
 
 '''
+@summary: Iterate the files of a directory.
+          Populate a dictionary with key-value pair { line - number of characters }.
+@param inputDir:   the input directory  
+@return: the dictionary
+'''
+def PopulateDictionaryNumChars(inputDir):
+    numChars = { }
+    
+    for fileName in os.listdir(inputDir):
+        filePath = os.path.join(inputDir, fileName)
+        lineNumber = 1       
+        with open(filePath, 'r') as file:
+            for line in file:
+                numChars[lineNumber] = numChars.get(lineNumber, 0) + len(line) - 1
+                lineNumber = lineNumber + 1
+    
+    return numChars
+
+'''
 @summary: Walk through a directory tree.
           Populate a dictionary with key-value pair 
           { file name - (last modification - directory) }.
@@ -165,7 +212,6 @@ def PopulateFileDirectories(topDir, fileDirs):
 @param destination: the destination directory
 '''
 def MergeDirectories(sources, n, destination):
-    # Populate the dictionary
     fileLastMod = {}
     
     for i in range(0, n):
@@ -185,13 +231,29 @@ def MergeDirectories(sources, n, destination):
             os.symlink(srcPath, dstPath)
  
 '''
+@summary: Iterate the files of a directory.
+          Populate a dictionary with key-value pair {pattern - occurences}.
+@param patterns:   list of patterns
+@param inputDir:   input directory
+@param patternOcc: dictionary
+'''
+def PopulatePatternOcc(patternOcc, patterns, inputDir):
+    for pattern in patterns:
+        patternOcc.setdefault(pattern, 0);  
+      
+    for fileName in os.listdir(inputDir):
+        filePath = os.path.join(inputDir, fileName)
+        with open(filePath) as file:   
+            for line in file:
+                CountOverlappingMatches(patternOcc, line)   
+ 
+'''
 @summary: Walk through the directory tree.
           Get the suffix of each file.
           Populate a dictionary with key-value pair {suffix - [file paths]}.
 @param topDir:     the root directory
 @param suffixFile: the dictionary
 '''
-# Build a dictionary with key-value pair { suffix - [file path] }
 def PopulateSameSuffix(topDir, sameSuffix):
     for dirPath, _, fileNames in os.walk(topDir):
         for fileName in fileNames:
@@ -212,24 +274,92 @@ def CreateDirectoriesSymLinks(topDir, sameSuffix):
         dirPath = os.path.join(topDir, key)
         if not os.path.isdir(dirPath):
             os.makedirs(dirPath)
-        for source in files:
-            fileName = os.path.basename(source)
-            destination = os.path.join(dirPath, fileName)
-            if not os.path.lexists(destination):
-                os.symlink(source, destination)
+        for src in files:
+            fileName = os.path.basename(src)
+            dst = os.path.join(dirPath, fileName)         
+            CreateSoftLink(src, dst)
 
 '''
 @summary: Create a soft link in a forced way.
           If already exists, remove it and create a new one.
-@param source:      source file
-@param destination: destination file
+@param src: source file
+@param dst: destination file
 '''
-def CreateSoftLink(source, destination):
+def CreateSoftLink(src, dst):
     try:
-        os.symlink(source, destination)
+        os.symlink(src, dst)
     except OSError as e:
         if e.errno == errno.EEXIST:
-            os.remove(destination)
-            os.symlink(source, destination)
+            os.remove(dst)
+            os.symlink(src, dst)
 
+'''
+@summary: Change Access Time attribute of a file.
+@param filePath: the file path
+'''  
+def ChangeAccessTime(filePath):
+    now = time.mktime(datetime.datetime.today().timetuple())
+    oneDay = 24 * 60 * 60
+    yesterday = now - oneDay
+    os.utime(filePath, (yesterday, now))
+    
+'''
+@summary: Count the overlapping occurences of a pattern in a text
+@param patternDict: dictionary with key-value pair {pattern - occurences}
+@param text: text to be processed
+'''
+def CountOverlappingMatches(patternDict, text):
+    start = 0
+    for key, _ in patternDict.items():
+        reObject = re.compile(key)
+        match = reObject.search(text, start)
+        while match is not None:
+            patternDict[key] = patternDict.get(key, 0) + 1
+            start = 1 + match.start()       
+            match = reObject.search(text, start)
+
+'''
+@summary: Find the overlapping occurences of a pattern in a text.
+@param pattern: regular expression patter
+@param text: input text
+@return: list of the overlapping occurences
+'''
+def FindOverlappingMatches(pattern, text):
+    matches = []
+    start = 0
+    reObject = re.compile(pattern)
+    match = reObject.search(text, start)
+    while match is not None:
+        matches.append(match.group())
+        start = 1 + match.start()       
+        match = reObject.search(text, start)
+    return matches
+
+'''
+@summary: Compress a file in the TAR format.
+@param srcPath: the file path
+@return: dstPath: the destination path
+'''
+def CompressTarFile(srcPath):
+    prefix, _ = os.path.splitext(srcPath)
+    dstPath = prefix + ".tar.gz"
+    
+    with tarfile.open(dstPath, "w:gz") as tar:
+        tar.add(srcPath, arcname=os.path.basename(srcPath))
         
+    return dstPath
+
+'''
+@summary: Compress a file in the ZIP format.
+@param srcPath: the file path
+@return: dstPath: the destination path
+'''
+def CompressGZipFile(srcPath):
+    prefix, _ = os.path.splitext(srcPath)
+    dstPath = prefix + ".gz"
+        
+    with open(srcPath, 'rb') as srcFile:
+        with gzip.open(dstPath, 'wb') as dstFile:
+            dstFile.writelines(srcFile)
+    
+    return dstPath

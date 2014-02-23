@@ -13,17 +13,14 @@ import os, sys, hashlib
 def main(argv):
     # Check number of parameters
     if len(argv) != 3:
-        print("The function needs two parameters to be passed in.")
-        return;
+        sys.exit("The function needs two parameters to be passed in.")
     
     # Check input directories
     if not (os.path.isdir(argv[1])):
-        print("First argument should be an existing directory.")
-        return;
+        sys.exit("First argument should be an existing directory.")
     
     if not (os.path.isdir(argv[2])):
-        print("Second argument should be an existing directory.")
-        return;
+        sys.exit("Second argument should be an existing directory.")
     
     # Build a dictionary with key-value pair { relative file path - MD5 hash }
     fileHash = {}
@@ -33,17 +30,22 @@ def main(argv):
     
     print("Done!")
 
-# If first directory then populate the dictionary
-# Otherwise find the modified files if any
-def compareDirectories(fileHash, topDir):
-    for dirPath, dirNames, fileNames in os.walk(topDir):
+'''
+@summary:  Walk through the directory tree and populate a dictionary 
+           with key-value pair {relative file path - MD5 hash}.
+           Find files with same name but different content.
+@param topDir:   the root directory
+@param fileHash: the dictionary
+'''
+def CompareDirectories(fileHash, topDir):
+    for dirPath, _, fileNames in os.walk(topDir):
         for fileName in fileNames:
             filePath = os.path.join(dirPath, fileName)
-            hash = GetMd5Hash(filePath)
+            md5 = GetMd5Hash(filePath)
             relativePath = os.path.join(os.path.relpath(dirPath, topDir), fileName)
             if not fileHash.get(relativePath, ""):
-                fileHash[relativePath] = hash
-            elif fileHash[relativePath] != hash:
+                fileHash[relativePath] = md5
+            elif fileHash[relativePath] != md5:
                 print("[{0}]".format(relativePath))
 
 '''

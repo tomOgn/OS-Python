@@ -13,8 +13,7 @@ import os, sys
 def Main(argv):
     # Check number of parameters
     if len(argv) != 1:
-        print("The function does not require parameters to be passed in.")
-        return
+        sys.exit("The function does not require parameters to be passed in.")
     
     processes = []
     PopulateActiveProcesses(processes)

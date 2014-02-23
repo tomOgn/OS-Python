@@ -11,34 +11,28 @@ URL: http://www.cs.unibo.it/~renzo/so/pratiche/2009.07.14.pdf
 import os, sys, datetime, time
 
 def Main(argv):
-    # Verify preconditions
-    Preconditions(argv)
-    
-    # Change access time for each file in topDir
-    topDir = argv[1]
-    WalkDirectories(topDir)
-    
-    print("Done!")
-
-def Preconditions(argv):
-    # Check number of arguments
+    # Check number of parameters
     if len(argv) != 2:
-        print("The function requires one argument to be passed in.")
-        return
+        sys.exit("The function requires one parameter to be passed in.")
     
-    # Check input directories
-    if not (os.path.isdir(argv[1])):
-        print("First argument should be an existing directory.")
-        return;
-
-# Traverse a directory tree
-def WalkDirectories(topDir):
-    for dirPath, dirNames, fileNames in os.walk(topDir):
+    # Check parameters
+    topDir = argv[1]
+    if not (os.path.isdir(topDir)):
+        sys.exit("First parameter should be an existing directory.")
+        
+    # Traverse a directory tree
+    for dirPath, _, fileNames in os.walk(topDir):
         for fileName in fileNames:
             filePath = os.path.join(dirPath, fileName)
+            # Change access time
             ChangeAccessTime(filePath)
             
-# Change Access Time attribute of a file      
+    print("Done!")
+
+'''
+@summary: Change Access Time attribute of a file.
+@param filePath: the file path
+'''  
 def ChangeAccessTime(filePath):
     now = time.mktime(datetime.datetime.today().timetuple())
     oneDay = 24 * 60 * 60

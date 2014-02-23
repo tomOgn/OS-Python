@@ -54,6 +54,9 @@ def CreateSoftLink(source, destination):
             os.remove(destination)
             os.symlink(source, destination)
 
+'''
+@summary: Entry point.
+'''
 def Main(argv):
     # Check number of parameters
     if len(argv) != 3:

@@ -15,8 +15,7 @@ def main(argv):
     numArgs = len(argv)
     
     if len(argv) != 1:
-        print("The function does not require arguments to be passed in.")
-        return
+        sys.exit("The function does not require arguments to be passed in.")
     
     # Build a dictionary with key-value pair {service - run levels}
     services = {}

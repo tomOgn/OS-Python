@@ -14,8 +14,7 @@ def main(argv):
     # Check number of parameters
     numArgs = len(argv)   
     if numArgs > 2:
-        print("The function requires zero or one parameter to be passed in.")
-        return
+        sys.exit("The function requires zero or one parameter to be passed in.")
     
     if numArgs == 1:
         inputDir = os.getcwd()
@@ -24,8 +23,7 @@ def main(argv):
         
         # Check the input directory
         if not os.path.isdir(inputDir):
-            print("The argument should be an existing directory.")
-            return
+            sys.exit("The parameter should be an existing directory.")
     
     # Build a dictionary with key-value pair { file type - file names }
     typeFiles = {}

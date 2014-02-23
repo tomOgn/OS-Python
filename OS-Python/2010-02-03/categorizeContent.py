@@ -1,3 +1,4 @@
+#!/usr/local/bin/python3
 '''
 Prova Pratica di Laboratorio di Sistemi Operativi
 03 febbraio 2010
@@ -11,25 +12,31 @@ URL: http://www.cs.unibo.it/~renzo/so/pratiche/2010.02.03.pdf
 import os, sys
 from stat import *
 
-def main(argv):
-    # Check number of arguments
+def Main(argv):
+    # Check number of parameters
     if len(argv) != 1:
-        print("The function does not require arguments.")
-        return
+        sys.exit("The function does not require parameters to be passed in.")
     
     # Build a dictionary with key-value pair { category - number of elements }
     categoryNumber = {}
     categoryNumber["Directories"] = 0
     categoryNumber["Regular Files"] = 0
     categoryNumber["Device Files"] = 0
-    populateDictionary(categoryNumber, os.getcwd())
+    populateCategoryNum(categoryNumber, os.getcwd())
     
-    printResults(categoryNumber)
+       # Print results in command line
+    for key, value in categoryNumber.items():
+        print("{0}: {1}.".format(key, value))
 
     print("Done!")
 
-# Categorize every object within the given top directory
-def populateDictionary(categoryNumber, topDir):
+'''
+@summary: Walk through the directory tree and populate a dictionary 
+          with key-value pair {category - number of elements}.
+@param topDir:         the root directory
+@param categoryNumber: the dictionary
+'''
+def populateCategoryNum(categoryNumber, topDir):
     for dirPath, dirNames, fileNames in os.walk(topDir):
         # Update number of directories
         categoryNumber["Directories"] += len(dirNames)
@@ -45,11 +52,5 @@ def populateDictionary(categoryNumber, topDir):
                 # Update number of device files
                 categoryNumber["Device Files"] += 1   
 
-# Print results in command line
-def printResults(categoryNumber):
-    print("Catogory: Number of elements.")               
-    for key, value in categoryNumber.items():
-        print("{0}: {1}.".format(key, value))
-
 if __name__ == "__main__":
-    sys.exit(main(sys.argv))
+    sys.exit(Main(sys.argv))

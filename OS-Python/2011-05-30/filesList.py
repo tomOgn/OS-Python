@@ -30,16 +30,14 @@ def PopulateFileDirectories(topDir, fileDirs):
             
 
 def main(argv):
-    # Check number of arguments
+    # Check number of parameters
     if len(argv) != 2:
-        print("The function requires one argument to be passed in.")
-        return
+        sys.exit("The function requires one parameter to be passed in.")
     
     # Check the parameter
     topDir = str(argv[1])
     if not os.path.isdir(topDir):
-        print("The argument should be an existing directory.")
-        return
+        sys.exit("The parameter should be an existing directory.")
     
     # Build a dictionary with key-value pair { file name - directories }
     fileDirs = {}

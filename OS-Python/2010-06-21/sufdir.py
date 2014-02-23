@@ -8,16 +8,15 @@ URL: http://www.cs.unibo.it/~renzo/so/pratiche/2010-06-21.pdf
 @author: Tommaso Ognibene
 '''
 
-import os, sys, hashlib
+import os, sys, hashlib, errno
 
 def main(argv):
     # Check number of parameters
     if len(argv) != 1:
-        print("The function does not require parameters.")
-        return
+        sys.exit("The function does not require parameters.")
     
     sameSuffix = {}
-    PopulateSameSuffix("/home/tommaso/Pictures", sameSuffix)
+    PopulateSameSuffix(os.getcwd(), sameSuffix)
     CreateDirectoriesSymLinks(os.getcwd(), sameSuffix)
     
     print("Done!")
@@ -38,6 +37,20 @@ def PopulateSameSuffix(topDir, sameSuffix):
             sameSuffix[suffix] = sameSuffix.get(suffix, []) + [filePath]
 
 '''
+@summary: Create a soft link in a forced way.
+          If already exists, remove it and create a new one.
+@param src: source file
+@param dst: destination file
+'''
+def CreateSoftLink(src, dst):
+    try:
+        os.symlink(src, dst)
+    except OSError as e:
+        if e.errno == errno.EEXIST:
+            os.remove(dst)
+            os.symlink(src, dst)
+
+'''
 @summary: Iterate the dictionary.
           Create a directory for every key.
           The value associated to every key is a list of fils.
@@ -50,11 +63,10 @@ def CreateDirectoriesSymLinks(topDir, sameSuffix):
         dirPath = os.path.join(topDir, key)
         if not os.path.isdir(dirPath):
             os.makedirs(dirPath)
-        for source in files:
-            fileName = os.path.basename(source)
-            destination = os.path.join(dirPath, fileName)
-            if not os.path.lexists(destination):
-                os.symlink(source, destination)            
-
+        for src in files:
+            fileName = os.path.basename(src)
+            dst = os.path.join(dirPath, fileName)         
+            CreateSoftLink(src, dst)
+            
 if __name__ == "__main__":
     sys.exit(main(sys.argv))

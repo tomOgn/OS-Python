@@ -11,16 +11,14 @@ URL: http://www.cs.unibo.it/~renzo/so/pratiche/2012-02-15.pdf
 import os, sys
 
 def main(argv):
-    # Check number of arguments
+    # Check number of parameters
     if len(argv) != 2:
-        print("The function only needs one argument to be passed in")
-        return
+        sys.exit("The function only needs one parameter to be passed in.")
     
     # Check the parameter
     inputDir = str(sys.argv[1])
     if not os.path.isdir(inputDir):
-        print("The argument should be an existing directory")
-        return
+        sys.exit("The parameter should be an existing directory.")
     
     # Build a dictionary with key-value pair { file name - True/False }
     fileNames = { }
@@ -32,7 +30,8 @@ def main(argv):
         # Remove extension
         fileName, _ = os.path.splitext(file)
         # First check if file is a palindrome
-        if fileName == fileName[::-1]:
+        mid = len(fileName) / 2
+        if fileName[:mid] == fileName[mid::-1]:
             namesToPrint.append(fileName)
         # Else check if the reversed has been discovered
         elif fileNames.get(fileName[::-1], False):

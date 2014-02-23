@@ -13,14 +13,12 @@ import os, sys
 def Main(argv):
     # Check number of parameters
     if len(argv) != 2:
-        print("The function requires one argument to be passed in.")
-        return
+        sys.exit("The function requires one argument to be passed in.")
     
     # Check parameters
     topDir = str(sys.argv[1])
     if not os.path.isdir(topDir):
-        print("The parameter should be an existing directory.")
-        return
+        sys.exit("The parameter should be an existing directory.")
     
     # Build a dictionary with key-value pair {file extension - total size}
     extensionSize = { }
