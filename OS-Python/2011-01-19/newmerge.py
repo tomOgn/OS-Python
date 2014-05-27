@@ -32,7 +32,7 @@ def MergeDirectories(sources, n, destination):
             elif fileLastMod[fileName][0] < lastMod:
                 fileLastMod[fileName] = (lastMod, sources[i])
            
-    # Create the soft links
+    # Generate the soft links
     for key, value in fileLastMod.items():
         srcPath = os.path.join(value[1], key)
         dstPath = os.path.join(destination, key)
@@ -40,32 +40,28 @@ def MergeDirectories(sources, n, destination):
             os.symlink(srcPath, dstPath)
 
 # Entry point
-def Main(argv):
+def Main(argv, argc):
     
-    # Check number of parameters
-    numArgs = len(argv)
-    if numArgs != 4:
-        sys.exit("The function needs three parameters to be passed in")
+    # Perform a sanity check and parse the parameters
+    if argc < 4:
+        sys.exit("The function requires at least three parameters to be passed in.")
 
-    # Check parameters
-    mergingDir = []
-    for index in range(1, 3):
-        if not os.path.isabs(str(argv[index])):
-            mergingDir.append(os.path.abspath(str(argv[index])))
+    last = argc - 1
+    source = []
+    for i in range(1, last):      
+        if not os.path.isabs(argv[i]):
+            source.append(os.path.abspath(argv[i]))
         else:
-            mergingDir.append(str(argv[index]))
-    mergedDir = str(argv[3])
-    
-    if not (os.path.isdir(mergingDir[0])):
-        sys.exit("Firts parameter should be an existing directory")
-    if not (os.path.isdir(mergingDir[1])):
-        sys.exit("Second parameter should be an existing directory")
-    if not (os.path.isdir(mergedDir)):
-        sys.exit("Third parameter should be an existing directory")        
+            source.append(argv[i])
+            
+        if not os.path.isdir(source[i - 1]):
+            sys.exit("The parameters should be existing directories.") 
+            
+    destination = argv[last]     
    
-    MergeDirectories(mergingDir, 2, mergedDir)
+    MergeDirectories(source, last - 1, destination)
             
     print("Done!")
 
 if __name__ == "__main__":
-    sys.exit(Main(sys.argv))
+    sys.exit(Main(sys.argv, len(sys.argv)))

@@ -5,7 +5,62 @@
 @version: 2014-02-14
 '''
 
-import os, errno, hashlib, operator, filecmp, datetime, time, re, tarfile, gzip
+import os, errno, hashlib, operator, filecmp, datetime, time, re, tarfile, gzip, shutil
+
+'''
+@summary: Find a replace every occurences of a pattern with a new string in a file.
+'''
+def Replace(filePath, oldString, newString):
+    content = []
+    with open(filePath,'r') as file:
+        for line in file.readlines():
+            content.append(line.replace(oldString, newString))
+    with open(filePath, 'w') as file:
+        for line in content:
+            file.write(line)
+
+'''
+@summary: Parse University exams results written in a file.
+          Pattern to process: VOTO;<Surname>;<Name>;<Sex>;<Mark>
+'''
+def ParseResults(filePath):
+    results = []
+    with open(filePath,'r') as file:   
+        for line in file.readlines():
+            results.append(re.split(';', line))
+    sumMarks = 0.0
+    numMarks = 0.0
+    order = ['M', 'F']
+    for sex in order:
+        for record in results:
+            if record[3] == sex:
+                sumMarks += int(record[4])
+                numMarks += 1
+                print(record[1] + ' ' + record[2])
+        print('Average = ' + str(sumMarks/numMarks))
+
+'''
+@summary: Parse University exams results written in a file.
+          Pattern to process: VOTO;<Cognome>;<Nome>;<Voto scritto>;<Voto finale>
+'''
+def ParseResults2(filePath):
+    results = []
+    with open(filePath, 'r') as file:   
+        for line in file.readlines():
+            results.append(re.split(';', line))
+    order = ["A-L", "M-Z"]
+    for group in order:
+        sumMarks = numMarks = bestMark = 0
+        print("Group " + group)
+        for record in results:
+            if re.search("^[" + group + "]" , record[1], re.IGNORECASE) != None:
+                sumMarks += int(record[3])
+                numMarks += 1
+                if record[4] > bestMark:
+                    bestMark = record[4]
+        if numMarks > 0:
+            print('Average = ' + str(sumMarks/float(numMarks)))
+            print('Best = ' + bestMark)
 
 '''
 @summary: Get the MD5 hash without loading the whole file to memory.
@@ -109,6 +164,16 @@ def PopulateExtensionSize(topDir, extensionSize):
             extensionSize[fileExtension] = extensionSize.get(fileExtension, 0) + fileSize
             
 '''
+@summary: Add a comment to the beginning of a file if the file is not protected by copyright.
+'''
+def AddComment(filePath, comment):
+    content = open(filePath).read()
+    if not re.search('copyright', content, re.IGNORECASE):
+        with open(filePath, 'w') as writeFD:
+            writeFD.write(comment)
+            writeFD.write(content)            
+              
+'''
 @summary:  Iterate the soft links in the directory /proc.
            Build a list of the active processes.
 @param processes: the list
@@ -201,6 +266,69 @@ def PopulateDictionaryNumChars(inputDir):
                 lineNumber = lineNumber + 1
     
     return numChars
+
+'''
+@summary: Merge directory trees into one destination tree.
+          In case of more files having the same relative path, concatenate their content.
+@param sources:     the list of source directories
+@param destination: the destination directory
+'''
+def MergeTrees(sources, destination):
+    # Populate dictionary with key-value pair { relative path - [source directory] }
+    fileSource = { }
+    for source in sources:
+        for dirPath, dirNames, fileNames in os.walk(source, topdown=True):
+            relPath = os.path.relpath(dirPath, source)
+            for dirName in dirNames:
+                path = os.path.join(destination, relPath, dirName)
+                if not os.path.isdir(path):
+                    os.mkdir(path)
+            for fileName in fileNames:
+                path = os.path.join(relPath, fileName)
+                fileSource.setdefault(path, [])
+                fileSource[path] += [source]
+    # Merge through file concatenation     
+    Concatenate(fileSource, destination)
+
+'''
+@summary: Merge files from a list of sources to one destination.
+          In case of more files having the same relative path, concatenate their content.
+@param fileSource:  dictionary with key-value pair { relative path - [source directory] }
+@param destination: the destination directory
+'''
+def Concatenate(fileSource, destination):
+    for key, value in fileSource.items():
+        toPath = os.path.join(destination, key)
+        with open(toPath, 'wb') as outfile:
+            for source in value:
+                fromPath = os.path.join(source, key)
+                with open(fromPath, 'rb') as infile:
+                    shutil.copyfileobj(infile, outfile)
+
+'''
+@summary: Count the number of files within a directory.
+'''
+def CountFiles(dirPath):
+    return sum(1 for item in os.listdir(dirPath) if os.path.isfile(os.path.join(dirPath, item)))
+
+'''
+@summary: Pick the Jpeg images within a directory and copy them 
+          in a cozy way in the destination directory.
+'''
+def CozyJpegDirectory(sourceDir, destinationDir):
+    index = CountFiles(destinationDir)
+    for dirPath, _, fileNames in os.walk(sourceDir):
+        for fileName in fileNames:
+            extension = os.path.splitext(fileName)[1]
+            if extension in ['.jpg', '.jpeg']:
+                filePath = os.path.join(dirPath, fileName)
+                fileSize = os.path.getsize(filePath)
+                if fileSize >= 1024:
+                    index += 1
+                    destinationPath = os.path.join(destinationDir, str(index) + '.jpg')
+                    with open(filePath) as inFile:
+                        with open(destinationPath, 'w') as outFile:
+                            shutil.copyfileobj(inFile, outFile)
 
 '''
 @summary: Walk through a directory tree.

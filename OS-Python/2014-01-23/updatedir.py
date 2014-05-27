@@ -80,7 +80,6 @@ def Main(argv):
     for fileName in os.listdir(dirB):
         filePath = os.path.join(dirB, fileName)
         if os.path.isfile(filePath):
-            print(filePath)
             nameDict[fileName] = True
 
     for fileName in os.listdir(dirA):

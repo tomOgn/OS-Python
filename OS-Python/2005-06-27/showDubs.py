@@ -1,37 +1,40 @@
 '''
 Prova Pratica di Laboratorio di Sistemi Operativi
-20 giugno 2013
+27 luglio 2005
 Esercizio 3
 
-URL: http://www.cs.unibo.it/~renzo/so/pratiche/2013.06.21.pdf
+URL: http://www.cs.unibo.it/~renzo/so/pratiche/2005.06.27.pdf
 
 @author: Tommaso Ognibene
 '''
 
-import os, sys, hashlib
+import os, sys, hashlib, difflib
 
-def Main(argv):
-    # Check number of arguments
-    if len(argv) != 1:
-        print("The function does not require arguments to be passed in.")
-        return
+def main(argv, argc):
+    # Sanity check
+    if argc < 2:
+        sys.exit("The function requires at least one parameter to be passed in.")
     
-    # Build a dictionary with key-value pair {file size - [file name]}
+    for i in range(1, argc):
+        if not (os.path.isdir(argv[i])):
+            sys.exit("The parameters should be existing directories.")       
+        
+    # Build a dictionary with key-value pair {file size - [file path]}
     sameSize = { }
-    PopulateSameSize(os.getcwd(), sameSize)
-    
-    # Build a dictionary with key-value pair {MD5 hash - [file name]}
+    for i in range(1, argc):
+        PopulateSameSize(argv[i], sameSize)    
+        
+    # Build a dictionary with key-value pair {MD5 hash - [file path]}
     sameContent = { }
     for filePaths in sorted(sameSize.values(), key = len, reverse = True):
-        # No files with same size => No files with same content
         if len(filePaths) < 2: break
-        PopulateSameContent(filePaths, sameContent)
-
+        PopulateSameContent(filePaths, sameContent)   
+             
     # Print results
     PrintResults(sameContent)
-
+    
     print("Done!")
-
+    
 '''
 @summary: Walk through the directory tree and populate a dictionary 
           with key-value pair {file size - [file paths]}.
@@ -43,11 +46,11 @@ def PopulateSameSize(topDir, sameSize):
         for fileName in fileNames:
             filePath = os.path.join(dirPath, fileName)
             fileSize = os.path.getsize(filePath)
-            sameSize[fileSize] = sameSize.get(fileSize, []) + [filePath]  
-
+            sameSize[fileSize] = sameSize.get(fileSize, []) + [filePath]
+            
 '''
 @summary: Read a list of file paths and populate a dictionary 
-          with key-value pair {MD5 hash - [file names]}.
+          with key-value pair {MD5 hash - [file paths]}.
 @param filePaths:   the list of physical addresses
 @param sameContent: the dictionary
 '''
@@ -73,12 +76,15 @@ def GetMd5Hash(filePath, chunkSize = 2 ** 20):
             chunk = file.read(chunkSize)
     return digest.hexdigest()
 
-# Printout the lists of files having same content
+'''
+@summary: Printout the lists of files having same content.
+@param sameContent: a dictionary with key-value pair {MD5 hash - [file paths]}
+'''
 def PrintResults(sameContent):
     print("Lists of files having same content:")
     for files in sorted(sameContent.values(), key = len, reverse = True):
         if len(files) < 2: break
         print("[{0}]".format(", ".join(file for file in files)))
-        
+
 if __name__ == "__main__":
-    sys.exit(Main(sys.argv))
+    sys.exit(main(sys.argv, len(sys.argv)))
